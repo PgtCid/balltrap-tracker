@@ -193,32 +193,47 @@ Enregistrer le résultat
 
 </div>
 
-<script>
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  deleteDoc,
+  doc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB8bWelcyxT3yRMeCV8wJVjfCMLUxVIIeA",
+  authDomain: "balltraptracker.firebaseapp.com",
+  projectId: "balltraptracker",
+  storageBucket: "balltraptracker.firebasestorage.app",
+  messagingSenderId: "338665218194",
+  appId: "1:338665218194:web:bb53e85d3455fc6be5064b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let results = [];
 
 document.getElementById("date").value =
 new Date().toISOString().split("T")[0];
 
+
 function getResults(){
-
-    return JSON.parse(
-        localStorage.getItem("results")
-    ) || [];
-
+    return results;
 }
 
-function saveResults(results){
-
-    localStorage.setItem(
-        "results",
-        JSON.stringify(results)
-    );
-
-}
-
-function saveResult(){
+async function saveResult() {
 
     const date =
-    document.getElementById("date").value;
+        document.getElementById("date").value;
+
+   
 
     const shooter =
     document.getElementById("shooter").value;
@@ -263,38 +278,35 @@ function saveResult(){
         return;
     }
 
-    let results = getResults();
+   await addDoc(
+  collection(db, "results"),
+  {
+    date,
+    shooter,
+    course,
+    plate,
+    shots,
+    hits,
+    createdAt: Date.now()
+  }
+);
 
-    results.push({
-        id: Date.now(),
-        date,
-        shooter,
-        course,
-        plate,
-        shots,
-        hits
-    });
-
-    saveResults(results);
 
     document.getElementById("plateName").value="";
     document.getElementById("shots").value="";
     document.getElementById("hits").value="";
 
-    refreshAll();
+   
 }
 
-function deleteResult(id){
+async function deleteResult(id){
 
     if(!confirm("Supprimer ce résultat ?"))
         return;
 
-    let results =
-    getResults().filter(r => r.id !== id);
-
-    saveResults(results);
-
-    refreshAll();
+    await deleteDoc(
+        doc(db, "results", id)
+    );
 }
 
 function loadHistory(){
@@ -558,6 +570,22 @@ function exportCSV(){
     URL.revokeObjectURL(url);
 }
 
+window.saveResult = saveResult;
+window.deleteResult = deleteResult;
+
+onSnapshot(
+  collection(db, "results"),
+  (snapshot) => {
+
+    results = snapshot.docs.map(docItem => ({
+      id: docItem.id,
+      ...docItem.data()
+    }));
+
+    refreshAll();
+  }
+);
+
 function refreshAll(){
 
     loadHistory();
@@ -567,7 +595,7 @@ function refreshAll(){
 
 }
 
-refreshAll();
+
 
 </script>
 
