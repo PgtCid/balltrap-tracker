@@ -350,10 +350,10 @@ function loadHistory(){
             <td>${r.hits}/${r.shots}</td>
             <td>
                 <button
-                    class="delete-btn"
-                    onclick="deleteResult('${r.id}')"
-                    ✖
-                </button>
+    class="delete-btn"
+    onclick="window.deleteResult('${r.id}')">
+    🗑️
+</button>
             </td>
         </tr>
         `;
